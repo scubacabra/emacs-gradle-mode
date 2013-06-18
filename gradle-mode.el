@@ -10,43 +10,55 @@
 ;;    (require 'gradle-mode)
 
 ;;; Code:
+(require 'compile)
 
-(defcustom gradle-executable "gradle"
-  "If gradle is not in `exec-path', this should contain the full
-path to gradle executable."
-  :type 'string
-  :group 'gradle)
+(defun gradle-executable-path ()
+  (executable-find "gradle"))
 
-(defun gradle--executable-path ()
-  (executable-find gradle-executable))
+(defun gradle-input-tasks ()
+  (list (read-string "Enter your gradle tasks to execute (and/or) options: ")))
 
-(defun gradle-run (tasks)
-  ;; (interactive (list (gradle--input-commandline)))
-  (interactive)
-  ;; (gradle--with-project-root
-   (print (concat (gradle--executable-path)
-                    (when tasks
-                      (mapconcat 'identity (cons "" tasks) " ")))))
+(defun gradle-find-project-dir ()
+  (with-temp-buffer
+    (while (and (not (file-exists-p "build.gradle"))
+		(not (equal "/" default-directory)))
+      (cd ".."))
+  default-directory))
+
+(defun gradle-execute-interactive (tasks)
+  (interactive (list (gradle-input-tasks)))
+  (gradle-execute tasks))
+
+(defun gradle-execute-daemon-interactive (tasks)
+  (interactive (list (gradle-input-tasks)))
+  (gradle-execute (append tasks '("--daemon"))))
+
+(defun gradle-execute (tasks)
+  (let ((default-directory (gradle-find-project-dir)))
+   (compile (gradle-make-command tasks))))
+
+(defun gradle-make-command (tasks)
+  (concat (gradle-executable-path)
+	  (when tasks (mapconcat 'identity (cons "" tasks) " "))))
 
 (defvar gradle-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-g c") (gradle-run (list "compile")))
-    (define-key map (kbd "C-c C-g b") (gradle-run (list "build")))
-    (define-key map (kbd "C-c C-g t") (gradle-run (list "test")))
-    (define-key map (kbd "C-c C-g C-d c") (gradle-run (list "compile" "--daemon")))
-    (define-key map (kbd "C-c C-g C-d b") (gradle-run (list "build"   "--daemon")))
-    (define-key map (kbd "C-c C-g C-d t") (gradle-run (list "test"    "--daemon")))
-    (define-key map (kbd "C-c C-g d") (print "Run something as daemon"))
-    (define-key map (kbd "C-c C-g r") (print "Run something as normal"))
+    (define-key map (kbd "C-c C-g b") (lambda () (interactive) (gradle-execute '("build"))))
+    (define-key map (kbd "C-c C-g t") (lambda () (interactive) (gradle-execute '("test"))))
+    (define-key map (kbd "C-c C-g C-d b") (lambda () (interactive) (gradle-execute '("build" "--daemon"))))
+    (define-key map (kbd "C-c C-g C-d t") (lambda () (interactive) (gradle-execute '("test"  "--daemon"))))
+    (define-key map (kbd "C-c C-g d") 'gradle-execute-daemon-interactive)
+    (define-key map (kbd "C-c C-g r") 'gradle-execute-interactive)
     map)
   "Keymap for the gradle minor mode.")
 
 ;;;###autoload
 (define-minor-mode gradle-mode
-  "Gradle Mode -- run gradle from any buffer, will scan up for nearest gradle directory and run the command."
+  "Gradle Mode -- run gradle from any buffer, will scan up for nearest gradle build file in a directory and run the command."
   :lighter " gra"
-  :keymap 'gradle-mode-map)
+  :keymap 'gradle-mode-map
+  :global t)
 
 (provide 'gradle-mode)
 
-;; groovy-mode-plus.el ends here
+;; gradle-mode.el ends here
