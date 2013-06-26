@@ -18,9 +18,18 @@
 (defun gradle-input-tasks ()
   (list (read-string "Enter your gradle tasks to execute (and/or) options: ")))
 
+;; Get's the *potential* gradle file to run off **IF** there is the naming convention in a multi project build
+;; of the folder/dirname -- ${foldername}.gradle -- so you don't have
+;; as many "build.gradle" in a multi project build
+(defun gradle-get-directory-gradle-file ()
+  (setq dirname (file-name-nondirectory (directory-file-name default-directory)))
+  (concat dirname ".gradle"))
+
+;; looks for the directory with either a build.gradle or a {foldername}.gradle and uses that directory to run the gradle executable under
 (defun gradle-find-project-dir ()
   (with-temp-buffer
-    (while (and (not (file-exists-p "build.gradle"))
+    (while (and (not
+		 (or (file-exists-p "build.gradle") (file-exists-p (gradle-get-directory-gradle-file))))
 		(not (equal "/" default-directory)))
       (cd ".."))
   default-directory))
