@@ -44,7 +44,12 @@
 
 (defun gradle-execute (tasks)
   (let ((default-directory (gradle-find-project-dir)))
-   (compile (gradle-make-command tasks))))
+    (progn
+      (if (get-buffer "*compilation*")
+	  (progn
+	    (delete-windows-on (get-buffer "*compilation*"))
+	    (kill-buffer "*compilation*"))))
+    (compile (gradle-make-command tasks))))
 
 (defun gradle-make-command (tasks)
   (concat (gradle-executable-path)
