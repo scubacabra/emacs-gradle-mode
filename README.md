@@ -1,7 +1,9 @@
 emacs-gradle-mode
 =================
+[![Build Status](https://travis-ci.org/jacobono/emacs-gradle-mode.svg?branch=master)]
+(https://travis-ci.org/jacobono/emacs-gradle-mode)
 
-minor mode for emacs to run gradle from emacs and not have to go to a terminal!
+Minor mode for emacs to run gradle from emacs and not have to go to a terminal!
 
 # To Install #
 
@@ -11,12 +13,29 @@ minor mode for emacs to run gradle from emacs and not have to go to a terminal!
 (gradle-mode 1)
 ```
 
-# How to Use??? #
-The prefix keybinding is `C-c C-g` to invoke gradle.  
+## Keybindings ##
 
-Adding an `r` will prompt you for the command to run in a new gradle instance. (`C-c C-g r`
-Addding a `d` will prompt you for the command to run with the gradle **daemon**. (`C-c C-g d`)
+* `C-c C-g b`
+  - run `gradle build`
+* `C-c C-g t`
+  - run `gradle test`
+* `C-c C-g s`
+  - run `gradle test -Dsingle.test="user-supplied"`
+  - User supplies test to run from prompt
+* `C-c C-g C-d b`
+  - run `gradle build --daemon`
+* `C-c C-g C-d t`
+  - run `gradle test --daemon`
+* `C-c C-g C-d s`
+  - run `gradle -Dsingle.test="user-supplied" --daemon`
+  - User supplies test to run from prompt
+* `C-c C-g d`
+  - run `gradle "user-supplied" --daemon`
+  - User supplies tasks to run from prompt
+* `C-c C-g r`
+  - run `gradle "user-supplied"`
+  - User supplies tasks to run from prompt
 
-I have preprogrammed the basic keybindings of `build` and `test` only.  
+The prefix `C-d` runs the command with gradle's daemon, or creates one
+if it is not already present.
 
-To run normally, the prefix would be `C-c C-g`, and to run in `daemon` use the binding `C-c C-g C-d`.  From there the acronyms of `b` would issue the `build` command and `t` would issue the `test` command. (`C-c C-g [C-d] [b|t]`)
