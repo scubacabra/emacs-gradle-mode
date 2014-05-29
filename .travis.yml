@@ -10,6 +10,7 @@ before_install:
   - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
   - export PATH="/home/travis/.cask/bin:$PATH"
   - cask
+  - evm use $EVM_EMACS
   - EMACS=$(evm bin $EVM_EMACS)
 env:
   - EVM_EMACS=emacs-23.4-bin
