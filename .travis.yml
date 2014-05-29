@@ -10,12 +10,12 @@ before_install:
   - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
   - export PATH="/home/travis/.cask/bin:$PATH"
   - cask
-  - evm use $EVM_EMACS
   - EMACS=$(evm bin $EVM_EMACS)
+  - echo $EMACS
+  - echo emacs
 env:
   - EVM_EMACS=emacs-23.4-bin
   - EVM_EMACS=emacs-24.2-bin
   - EVM_EMACS=emacs-24.3-bin
 script:
-  - emacs --version
   - make
