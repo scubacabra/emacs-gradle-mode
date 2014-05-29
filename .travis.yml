@@ -1,11 +1,14 @@
 language: emacs-lisp
 before_install:
-  - curl -fsSkL https://gist.github.com/rejeep/7736123/raw | sh
-  - export PATH="/home/travis/.cask/bin:$PATH"
+  - sudo mkdir /usr/local/evm
+  - sudo chown travis:travis /usr/local/evm
+  - curl -fsSkL https://raw.github.com/rejeep/evm/master/go | bash
   - export PATH="/home/travis/.evm/bin:$PATH"
   - evm install emacs-24.3
   - evm install $EVM_EMACS
   - evm use emacs-24.3
+  - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
+  - export PATH="/home/travis/.cask/bin:$PATH"
   - cask
   - EMACS=$(evm bin $EVM_EMACS)
 env:
