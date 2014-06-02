@@ -31,31 +31,23 @@
 ;;; Code:
 
 ;;; --------------------------
-;; variables
-;;; --------------------------
-
-(defvar gradle-mode-compilation-input nil
-  "What compile was called with")
-
-;;; --------------------------
 ;; Definitions
 ;;; --------------------------
 
-(When "^Compile is mocked with \"\\(.+\\)\" and I press \"\\(.+\\)\"$"
-  (lambda (compile-parameters key-binding)
-    (with-mock
-     (mock (compile compile-parameters) => t)
-     (When "I press \"%s\"" key-binding)
-     )))
+(Then "^Compilation directory is \"\\(.+\\)\"$"
+  (lambda (compile-directory)
+    (should
+     (equal
+       compilation-directory
+	(f-short
+	 (f-slash
+	 (symbol-value (intern compile-directory))))))))
 
-(When "^Compile is mocked with \"\\(.+\\)\" and I press \"\\(.+\\)\" and I type \"\\(.+\\)\" at the prompt$"
-  (lambda (compile-params key-binding user-prompt)
-    (with-mock
-     (mock (compile compile-params) => t)
-     (Given "I start an action chain")
-     (And "I press \"%s\"" key-binding)
-     (And "I type \"%s\"" user-prompt)
-     (And "I execute the action chain")
-     )))
+(And "^Compilation command is \"\\(.+\\)\"$"
+  (lambda (compilation-command)
+    (should
+     (equal
+      compile-command
+      compilation-command))))
 
 ;;; gradle-mode-steps.el ends here

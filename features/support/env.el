@@ -26,9 +26,6 @@
 ;;; Code:
 
 (require 'f)
-(require 'el-mock)
-(eval-when-compile
-  (require 'cl)) ;; for el-mock
 
 (defvar gradle-mode-support-path
   (f-dirname load-file-name))
@@ -41,6 +38,12 @@
 
 (add-to-list 'load-path gradle-mode-root-path)
 
+;; avoid emacs interrupting tests with
+;; "Please answer yes or no"
+;; which is think is happening because it is trying to delete the
+;; compilation buffer after running one compilation?
+(fset 'yes-or-no-p (lambda (_) t))
+
 (require 'gradle-mode)
 (require 'espuds)
 (require 'ert)
@@ -48,12 +51,12 @@
 (Setup
  ;; Before anything has run
  (f-touch "build.gradle")
+ (setq gradle-executable-path "gradle")
  (gradle-mode 1)
  )
 
 (Before
  ;; Before each scenario is run
- (setq gradle-executable-path "gradle")
  )
 
 (After
