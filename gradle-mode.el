@@ -77,17 +77,16 @@ desire to run is run from the sub-project dir -- to run from the root
 dir, you would have to move the default-directory value there somehow.
 For example, switching to magit buffer, dired buffer on that folder
 etc."
-  (f-traverse-upwards
-   (lambda (path)
-     (or
-      (f-file?
-       (f-join path "build.gradle"))
-      (f-file?
-       (f-join path
-	       ;; common gradle file naming convention named after folder
-	       (s-prepend 
-		(f-filename path) ".gradle")))))
-   default-directory))
+  (f-slash (f-traverse-upwards
+	    (lambda (path)
+	      (or
+	       (f-file?
+		(f-join path "build.gradle"))
+	       (f-file?
+		(f-join path
+			;; common gradle file naming convention named after folder
+			(s-prepend (f-filename path) ".gradle")))))
+	    default-directory)))
 
 (defun gradle-kill-compilation-buffer ()
   "Kills compilation buffer is present."

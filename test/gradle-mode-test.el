@@ -60,35 +60,31 @@
     ;; test in the root project dir
     (setq default-directory
 	  (f-long gradle-mode-test/sandbox-path))
-    (setq project-directory
-	  (f-long gradle-mode-test/sandbox-path))
     (should
      (equal
       (gradle-find-project-dir)
-      gradle-mode-test/sandbox-path))
+      (f-full gradle-mode-test/sandbox-path)))
 
     ;; test in the sub-project dir
     (setq default-directory
     	  (f-join gradle-mode-test/sandbox-path "some-project"))
-    (setq project-directory
-    	  (f-join gradle-mode-test/sandbox-path "some-project"))
     (should
      (equal
       (gradle-find-project-dir)
-      project-directory))
+      (f-full (f-join
+	       gradle-mode-test/sandbox-path "some-project"))))
 
     ;; test in a sub directory of sub-project dir
     (setq default-directory
     	  (f-join gradle-mode-test/sandbox-path "some-project" "src" "main"))
-    (setq project-directory
-    	   (f-join gradle-mode-test/sandbox-path "some-project"))
     (should
      (equal
       (gradle-find-project-dir)
-      project-directory)))
+      (f-full (f-join
+	       gradle-mode-test/sandbox-path "some-project"))))
     
   ;; delete all sandbox directory
-  (f-delete gradle-mode-test/sandbox-path t))
+  (f-delete gradle-mode-test/sandbox-path t)))
 
 ;; kill compilation buffer if it is opened
 
