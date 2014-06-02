@@ -16,4 +16,4 @@ env:
   - EVM_EMACS=emacs-24.2-bin
   - EVM_EMACS=emacs-24.3-bin
 script:
-  - make
+  - make travis
