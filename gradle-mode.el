@@ -1,13 +1,13 @@
-;;; gradle-mode.el --- Gradle integration with Emacs' compile
+;;; gradle-mode.el --- Gradle integration with Emacs' compile -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014 by Daniel Mijares
 
 ;; Author: Daniel Mijares <daniel.j.mijares@gmail.com>
 ;; Maintainer: Daniel Mijares <daniel.j.mijares@gmail.com>
-;; URL: https://github.com/jacobono/gradle-mode
+;; URL: http://github.com/jacobono/emacs-gradle-mode
 ;; Version: 0.5
 ;; Keywords: gradle
-;; Package-Requires: ((s "1.9.0") (dash "2.2.0") (f "0.16.2"))
+;; Package-Requires: ((s "1.8.0") (dash "2.2.0") (f "0.16.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
