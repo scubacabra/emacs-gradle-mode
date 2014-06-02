@@ -4,8 +4,10 @@
 
 ;; Author: Daniel Mijares <daniel.j.mijares@gmail.com>
 ;; Maintainer: Daniel Mijares <daniel.j.mijares@gmail.com>
-;; URL: http://github.com/jacobono/gradle-mode
+;; URL: https://github.com/jacobono/gradle-mode
 ;; Version: 0.5
+;; Keywords: gradle
+;; Package-Requires: ((s "1.9.0") (dash "2.2.0") (f "0.16.2"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -23,6 +25,9 @@
 ;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Gradle integration into Emacs, through compile-mode.
+;; see documentation on https://github.com/jacobono/emacs-gradle-mode
 
 ;;; Code:
 
