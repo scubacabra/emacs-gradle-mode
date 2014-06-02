@@ -91,11 +91,11 @@ etc."
 
 (defun gradle-kill-compilation-buffer ()
   "Kills compilation buffer is present."
-    (progn
-      (if (get-buffer "*compilation*")
-	  (progn
-	    (delete-windows-on (get-buffer "*compilation*"))
-	    (kill-buffer "*compilation*")))))
+  (progn
+    (if (get-buffer "*compilation*")
+	(progn
+	  (delete-windows-on (get-buffer "*compilation*"))
+	  (kill-buffer "*compilation*")))))
 
 (defun gradle-run (gradle-tasks)
   "Runs gradle command with tasks and options supplied."
