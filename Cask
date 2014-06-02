@@ -2,7 +2,6 @@
 (source melpa)
 
 (package-file "gradle-mode.el")
-(package "gradle-mode" "0.5" "Gradle integration into Emacs' compile")
 
 (development
  (depends-on "f")

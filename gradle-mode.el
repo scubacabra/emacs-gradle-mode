@@ -1,11 +1,11 @@
-;;; gradle-mode.el --- Gradle integration with Emacs' compile -*- lexical-binding: t; -*-
+;;; gradle-mode.el --- Gradle integration with Emacs' compile
 
 ;; Copyright (C) 2014 by Daniel Mijares
 
 ;; Author: Daniel Mijares <daniel.j.mijares@gmail.com>
 ;; Maintainer: Daniel Mijares <daniel.j.mijares@gmail.com>
 ;; URL: http://github.com/jacobono/emacs-gradle-mode
-;; Version: 0.5
+;; Version: 0.5.2
 ;; Keywords: gradle
 ;; Package-Requires: ((s "1.8.0") (dash "2.2.0") (f "0.16.0"))
 
@@ -187,7 +187,7 @@ user."
   "Emacs minor mode for integrating Gradle into compile.
 Run gradle tasks from any buffer, scanning up to nearest gradle
 directory to run tasks."
-  :lighter " gra"
+  :lighter " Gradle"
   :keymap 'gradle-mode-map
   :global t)
 
