@@ -23,7 +23,7 @@ unit:
 	${CASK} exec ert-runner
 
 unit-travis:
-	${CASK} exec ert-runner --no-win
+	${CASK} exec ert-runner --debug
 
 ecukes:
 	${CASK} exec ecukes --reporter gangsta
