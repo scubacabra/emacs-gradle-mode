@@ -7,7 +7,7 @@
 ;; URL: http://github.com/jacobono/emacs-gradle-mode
 ;; Version: 0.5.2
 ;; Keywords: gradle
-;; Package-Requires: ((s "1.8.0") (dash "2.2.0") (f "0.16.0"))
+;; Package-Requires: ((s "1.8.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
