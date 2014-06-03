@@ -12,18 +12,15 @@ test: clean-elc
 	${MAKE} clean-elc
 
 travis: clean-elc
-	${MAKE} unit-travis
+	${MAKE} unit
 	${MAKE} ecukes-travis
 	${MAKE} compile
-	${MAKE} unit-travis
+	${MAKE} unit
 	${MAKE} ecukes-travis
 	${MAKE} clean-elc
 
 unit:
 	${CASK} exec ert-runner
-
-unit-travis:
-	${CASK} exec ert-runner --debug
 
 ecukes:
 	${CASK} exec ecukes --reporter gangsta
