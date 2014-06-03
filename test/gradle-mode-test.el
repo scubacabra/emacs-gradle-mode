@@ -44,6 +44,11 @@
 ;; find the correct gradle project directory to run commands in
 
 (ert-deftest gradle-test-find-project-dir ()
+  ;; dominating-file returns the user path replace with "~/",
+  ;; compare this with (f-short) and since f-short does not
+  ;; add "/" to directory add, because dominating-file returns directory
+  ;; with the "/" at its end.
+
   ;; make sandbox directories to find the correct gradle project fil
   (f-mkdir
    gradle-mode-test/sandbox-path "some-project" "src" "main")
@@ -56,35 +61,33 @@
    (f-join
     gradle-mode-test/sandbox-path "some-project" "some-project.gradle"))
 
-  (let* ((project-directory)) ;; directory of the gradle project file
-    ;; test in the root project dir
-    (setq default-directory
-	  (f-long gradle-mode-test/sandbox-path))
-    (should
-     (equal
-      (gradle-find-project-dir)
-      (f-full gradle-mode-test/sandbox-path)))
+  ;; test in the root project dir
+  (setq default-directory gradle-mode-test/sandbox-path)
+  (should
+   (equal
+    (gradle-find-project-dir)
+    (f-slash (f-short gradle-mode-test/sandbox-path)))) 
 
-    ;; test in the sub-project dir
-    (setq default-directory
-    	  (f-join gradle-mode-test/sandbox-path "some-project"))
-    (should
-     (equal
-      (gradle-find-project-dir)
-      (f-full (f-join
-	       gradle-mode-test/sandbox-path "some-project"))))
+  ;; test in the sub-project dir
+  (setq default-directory
+	(f-join gradle-mode-test/sandbox-path "some-project"))
+  (should
+   (equal
+    (gradle-find-project-dir)
+    (f-slash
+     (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
 
-    ;; test in a sub directory of sub-project dir
-    (setq default-directory
-    	  (f-join gradle-mode-test/sandbox-path "some-project" "src" "main"))
-    (should
-     (equal
-      (gradle-find-project-dir)
-      (f-full (f-join
-	       gradle-mode-test/sandbox-path "some-project"))))
-    
+  ;; test in a sub directory of sub-project dir
+  (setq default-directory
+	(f-join gradle-mode-test/sandbox-path "some-project" "src" "main"))
+  (should
+   (equal
+    (gradle-find-project-dir)
+    (f-slash
+     (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
+  
   ;; delete all sandbox directory
-  (f-delete gradle-mode-test/sandbox-path t)))
+  (f-delete gradle-mode-test/sandbox-path t))
 
 ;; kill compilation buffer if it is opened
 
