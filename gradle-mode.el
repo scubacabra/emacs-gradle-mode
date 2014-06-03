@@ -54,10 +54,6 @@ Absolute path, usually found with executable-find."
 ;; gradle-mode private functions
 ;;; --------------------------
 
-(defun gradle-user-prompt (prompt)
-  "Prompt User for further input to Gradle command line."
-  (read-string prompt))
-
 (defun gradle-find-project-dir ()
   "Finds the closest project dir to execute the gradle command on.
 This directory is found by checking up every directory from
@@ -107,12 +103,10 @@ etc."
 ;; gradle-mode interactive functions
 ;;; --------------------------
 
-(defun gradle-execute ()
+(defun gradle-execute (tasks)
   "Executes gradle command with tasks supplied by user input."
-  (interactive)
-  (let*
-      ((tasks (gradle-user-prompt "Type tasks to run: ")))
-    (gradle-run tasks)))
+  (interactive "sType tasks to run: ")
+  (gradle-run tasks))
 
 (defun gradle-build ()
   "Executes gradle build command."
@@ -124,23 +118,18 @@ etc."
   (interactive)
   (gradle-run "test"))
 
-(defun gradle-single-test ()
+(defun gradle-single-test (single-test-name)
   "Executes gradle test on a single file supplied by user."
-  (interactive)
-  (let* ((single-test-name
-	  (gradle-user-prompt "Type single test to run: "))
-	 (single-test))
-    (setq single-test (s-prepend "-Dtest.single=" single-test-name))
-    (gradle-run (s-join " " (-list "test" single-test)))))
+  (interactive "sType single test to run: ")
+  (gradle-run
+   (s-concat "test -Dtest.single=" single-test-name)))
 
-(defun gradle-execute--daemon ()
+(defun gradle-execute--daemon (tasks)
   "Executes gradle command, using daemon, with tasks supplied by user
 input."
-  (interactive)
-  (let*
-      ((tasks (gradle-user-prompt "Type tasks to run: ")))
-    (gradle-run
-     (s-join " " (-list tasks "--daemon")))))
+  (interactive "sType tasks to run: ")
+  (gradle-run
+   (s-concat tasks " --daemon")))
 
 (defun gradle-build--daemon ()
   "Executes gradle build command, using daemon."
@@ -152,15 +141,12 @@ input."
   (interactive)
   (gradle-run "test --daemon"))
 
-(defun gradle-single-test--daemon ()
+(defun gradle-single-test--daemon (single-test-name)
   "Executes gradle test, using daemon, on a single file supplied by
 user."
-  (interactive)
-  (let* ((single-test-name
-	  (gradle-user-prompt "Type single test to run: "))
-	 (single-test))
-  (setq single-test (s-prepend "-Dtest.single=" single-test-name))
-  (gradle-run (s-join " " (-list "test" single-test "--daemon")))))
+  (interactive "sType single test to run: ")
+  (gradle-run
+   (s-concat "test -Dtest.single=" single-test-name " --daemon")))
 
 ;;; ----------
 ;; gradle-mode keybindings
