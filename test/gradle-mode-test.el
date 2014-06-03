@@ -62,7 +62,8 @@
     gradle-mode-test/sandbox-path "some-project" "some-project.gradle"))
 
   ;; test in the root project dir
-  (setq default-directory gradle-mode-test/sandbox-path)
+  (setq default-directory 
+	(f-long gradle-mode-test/sandbox-path))
   (should
    (equal
     (gradle-find-project-dir)
