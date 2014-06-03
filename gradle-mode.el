@@ -76,6 +76,7 @@ etc."
    '(lambda (dir)
       (let ((dirname (file-name-nondirectory
 		      (directory-file-name (expand-file-name dir)))))
+	(print dirname)
         (or (file-exists-p (expand-file-name "build.gradle" dir))
             (file-exists-p (expand-file-name
 			    (concat dirname ".gradle") dir)))))))
