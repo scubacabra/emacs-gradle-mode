@@ -36,7 +36,6 @@
 ;;; --------------------------
 
 (require 's)
-(require 'dash)
 (require 'compile)
 
 ;;; --------------------------
@@ -97,7 +96,7 @@ etc."
 
 (defun gradle-make-command (gradle-tasks)
   "Makes the gradle command, combinding executable path and tasks."
-  (s-join " " (-list gradle-executable-path gradle-tasks)))
+  (s-join " " (list gradle-executable-path gradle-tasks)))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
