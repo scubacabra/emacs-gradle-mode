@@ -7,7 +7,7 @@ Minor mode for emacs to run gradle from emacs and not have to go to a terminal!
 
 # Installation #
 
-Available on [MELPA](ttp://melpa.milkbox.net/):
+Available on [MELPA](http://melpa.milkbox.net/):
 
     M-x package-install gradle-mode
 
