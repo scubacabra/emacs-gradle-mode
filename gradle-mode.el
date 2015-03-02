@@ -94,9 +94,16 @@ etc."
   (let ((default-directory (gradle-find-project-dir)))
     (compile (gradle-make-command gradle-tasks))))
 
+(defun gradlew-or-exec-path ()
+  "Gets gradlew or executable path"
+  (let ((gradlew-path (expand-file-name "gradlew" default-directory)))
+    (if (eq t (file-exists-p gradlew-path))
+	gradlew-path
+      gradle-executable-path)))
+
 (defun gradle-make-command (gradle-tasks)
   "Makes the gradle command, combinding executable path and tasks."
-  (s-join " " (list gradle-executable-path gradle-tasks)))
+  (s-join " " (list (gradlew-or-exec-path) gradle-tasks)))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
