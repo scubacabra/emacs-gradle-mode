@@ -39,7 +39,20 @@
   (should
    (equal
     (gradle-make-command "test")
-    "gradle test")))
+    "gradle test"))
+  (let ((gradle-use-gradlew t))
+    (should
+     (equal
+      (gradle-make-command "test -Dtest-single=MyTest --daemon")
+      "gradlew test -Dtest-single=MyTest --daemon"))
+    (should
+     (equal
+      (gradle-make-command "build --daemon")
+      "gradlew build --daemon"))
+    (should
+     (equal
+      (gradle-make-command "test")
+      "gradlew test"))))
 
 ;; find the correct gradle project directory to run commands in
 
@@ -50,42 +63,56 @@
   ;; with the "/" at its end.
 
   ;; make sandbox directories to find the correct gradle project fil
-  (f-mkdir
-   gradle-mode-test/sandbox-path "some-project" "src" "main")
+  (f-mkdir gradle-mode-test/sandbox-path "some-project" "src" "main")
 
   ;; touch gradle project files
-  (f-touch
-   (f-join
-    gradle-mode-test/sandbox-path "build.gradle"))
-  (f-touch
-   (f-join
-    gradle-mode-test/sandbox-path "some-project" "some-project.gradle"))
+  (f-touch (f-join gradle-mode-test/sandbox-path "build.gradle"))
+  (f-touch (f-join gradle-mode-test/sandbox-path "gradlew"))
+  (f-touch (f-join gradle-mode-test/sandbox-path "some-project"
+		   "some-project.gradle"))
 
   ;; test in the root project dir
-  (setq default-directory 
-	(f-long gradle-mode-test/sandbox-path))
-  (should
-   (equal
-    (gradle-find-project-dir)
-    (f-slash (f-short gradle-mode-test/sandbox-path)))) 
+  (let ((default-directory (f-long gradle-mode-test/sandbox-path)))
+    (should
+     (equal
+      (gradle-run-from-dir 'gradle-is-project-dir)
+      (f-slash (f-short gradle-mode-test/sandbox-path))))
+    (let ((gradle-use-gradlew t))
+      (should
+       (equal
+	(gradle-run-from-dir 'gradle-is-gradlew-dir)
+	(f-slash
+	 (f-short gradle-mode-test/sandbox-path))))))
 
   ;; test in the sub-project dir
-  (setq default-directory
-	(f-join gradle-mode-test/sandbox-path "some-project"))
-  (should
-   (equal
-    (gradle-find-project-dir)
-    (f-slash
-     (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
+  (let ((default-directory (f-join gradle-mode-test/sandbox-path
+				   "some-project")))
+    (should
+     (equal
+      (gradle-run-from-dir 'gradle-is-project-dir)
+      (f-slash
+       (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
+    (let ((gradle-use-gradlew t))
+      (should
+       (equal
+	(gradle-run-from-dir 'gradle-is-gradlew-dir)
+	(f-slash
+	 (f-short gradle-mode-test/sandbox-path))))))
 
   ;; test in a sub directory of sub-project dir
-  (setq default-directory
-	(f-join gradle-mode-test/sandbox-path "some-project" "src" "main"))
-  (should
-   (equal
-    (gradle-find-project-dir)
-    (f-slash
-     (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
+  (let ((default-directory (f-join gradle-mode-test/sandbox-path
+				   "some-project" "src" "main")))
+    (should
+     (equal
+      (gradle-run-from-dir 'gradle-is-project-dir)
+      (f-slash
+       (f-short (f-join gradle-mode-test/sandbox-path "some-project")))))
+    (let ((gradle-use-gradlew t))
+      (should
+       (equal
+	(gradle-run-from-dir 'gradle-is-gradlew-dir)
+	(f-slash
+	 (f-short gradle-mode-test/sandbox-path))))))
   
   ;; delete all sandbox directory
   (f-delete gradle-mode-test/sandbox-path t))

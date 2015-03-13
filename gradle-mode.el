@@ -45,43 +45,48 @@
 ;; error processing if no executable??
 (defcustom gradle-executable-path (executable-find "gradle")
   "String representation of the Gradle executable location.
-Absolute path, usually found with executable-find."
-  :type '(string)
-  :group 'gradle-executable)
+Absolute path, usually found with `executable-find'."
+  :group 'gradle
+  :type 'string)
 
+(defcustom gradle-gradlew-executable "gradlew"
+  "String representation of the gradlew executable."
+  :group 'gradle
+  :type 'string)
+
+(defcustom gradle-use-gradlew nil
+  "Use gradlew or `gradle-executable-path'.
+If true, run gradlew from its location in the project file system.
+If false, will find project build file and run `gradle-executable-path' from there."
+  :group 'gradle
+  :type 'boolean)
 ;;; --------------------------
 ;; gradle-mode private functions
 ;;; --------------------------
 
-(defun gradle-find-project-dir ()
-  "Finds the closest project dir to execute the gradle command on.
-This directory is found by checking up every directory from
-'default-directory' for two files:
-* 'build.gradle' -- default name for a gradle build file.
-* 'some-folder.gradle' (assuming the file is located under
-rootDir/some-folder/)
-The latter is a common naming convention to rename the 'build.gradle'
-to 'some-folder.gradle' assuming the file is located under
-rootDir/some-folder/.  This is usually a convention for a
-multi-project-build.
-The directory to run the gradle command in is returned as the
-directory that contains either of these two files.
-As a side note, you can edit files in a sub-project and any command you
-desire to run is run from the sub-project dir -- to run from the root
-dir, you would have to move the default-directory value there somehow.
-For example, switching to magit buffer, dired buffer on that folder
-etc."
-  (locate-dominating-file
-   default-directory
-   '(lambda (dir)
-      (let ((dirname (file-name-nondirectory
-		      (directory-file-name (expand-file-name dir)))))
-        (or (file-exists-p (expand-file-name "build.gradle" dir))
-            (file-exists-p (expand-file-name
-			    (concat dirname ".gradle") dir)))))))
+(defun gradle-is-project-dir (dir)
+  "Is this DIR a gradle project directory with an extra convention.
+A project dir is always considered if there is a 'build.gradle' there.
+A project dir is also considered if there is a '{dirname}.gradle'.  This
+is a convention for multi-build projects, where dirname is under some
+'rootDir/dirname/dirname.gradle'."
+  (let ((dirname (file-name-nondirectory
+		  (directory-file-name (expand-file-name dir)))))
+    (or (file-exists-p (expand-file-name "build.gradle" dir))
+	(file-exists-p (expand-file-name
+			(concat dirname ".gradle") dir)))))
+
+(defun gradle-is-gradlew-dir (dir)
+  "Does this DIR contain a gradlew executable file."
+  (file-exists-p (expand-file-name "gradlew" dir)))
+
+(defun gradle-run-from-dir (is-dir)
+  "Find the closest dir to execute the gradle command under via IS-DIR function.
+If there is a folder you care to run from higher than this level, you need to move out to that level (eg. through dired etc.)."
+  (locate-dominating-file default-directory is-dir))
 
 (defun gradle-kill-compilation-buffer ()
-  "Kills compilation buffer is present."
+  "Kill compilation buffer if present."
   (progn
     (if (get-buffer "*compilation*")
 	(progn
@@ -89,60 +94,64 @@ etc."
 	  (kill-buffer "*compilation*")))))
 
 (defun gradle-run (gradle-tasks)
-  "Runs gradle command with tasks and options supplied."
+  "Run gradle command with `GRADLE-TASKS' and options supplied."
   (gradle-kill-compilation-buffer)
-  (let ((default-directory (gradle-find-project-dir)))
+  (let ((default-directory
+	  (gradle-run-from-dir (if gradle-use-gradlew
+				   'gradle-is-gradlew-dir
+				 'gradle-is-project-dir))))
     (compile (gradle-make-command gradle-tasks))))
 
 (defun gradle-make-command (gradle-tasks)
-  "Makes the gradle command, combinding executable path and tasks."
-  (s-join " " (list gradle-executable-path gradle-tasks)))
+  "Make the gradle command, using some executable path and GRADLE-TASKS."
+  (let ((gradle-executable (if gradle-use-gradlew
+			       gradle-gradlew-executable
+			     gradle-executable-path)))
+    (s-join " " (list gradle-executable gradle-tasks))))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
 ;;; --------------------------
 
 (defun gradle-execute (tasks)
-  "Executes gradle command with tasks supplied by user input."
+  "Execute gradle command with TASKS supplied by user input."
   (interactive "sType tasks to run: ")
   (gradle-run tasks))
 
 (defun gradle-build ()
-  "Executes gradle build command."
+  "Execute gradle build command."
   (interactive)
   (gradle-run "build"))
 
 (defun gradle-test ()
-  "Executes gradle test command."
+  "Execute gradle test command."
   (interactive)
   (gradle-run "test"))
 
 (defun gradle-single-test (single-test-name)
-  "Executes gradle test on a single file supplied by user."
+  "Execute gradle test on file SINGLE-TEST-NAME supplied by user."
   (interactive "sType single test to run: ")
   (gradle-run
    (s-concat "test -Dtest.single=" single-test-name)))
 
 (defun gradle-execute--daemon (tasks)
-  "Executes gradle command, using daemon, with tasks supplied by user
-input."
+  "Execute gradle command, using daemon, with TASKS supplied by user input."
   (interactive "sType tasks to run: ")
   (gradle-run
    (s-concat tasks " --daemon")))
 
 (defun gradle-build--daemon ()
-  "Executes gradle build command, using daemon."
+  "Execute gradle build command, using daemon."
   (interactive)
   (gradle-run "build --daemon"))
 
 (defun gradle-test--daemon ()
-  "Executes gradle test command, using daemon."
+  "Execute gradle test command, using daemon."
   (interactive)
   (gradle-run "test --daemon"))
 
 (defun gradle-single-test--daemon (single-test-name)
-  "Executes gradle test, using daemon, on a single file supplied by
-user."
+  "Execute gradle test, using daemon, on file SINGLE-TEST-NAME supplied by user."
   (interactive "sType single test to run: ")
   (gradle-run
    (s-concat "test -Dtest.single=" single-test-name " --daemon")))

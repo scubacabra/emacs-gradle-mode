@@ -51,6 +51,7 @@
 (Setup
  ;; Before anything has run
  (f-touch "build.gradle")
+ (f-touch "gradlew")
  (setq gradle-executable-path "gradle")
  (gradle-mode 1)
  )
@@ -66,6 +67,7 @@
 (Teardown
  ;; After when everything has been run
  (f-delete "build.gradle")
+ (f-delete "gradlew")
  (gradle-mode 0)
  )
 

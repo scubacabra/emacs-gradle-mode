@@ -62,6 +62,9 @@ barfing when I try and run the tests with <24.3.
 If you want to contribute, please fork and submit a pull request!
 
 # Changlog #
+## 0.5.5
+- gradlew support added.  Will find nearest gradlew file and run if
+  `gradle-use-gradlew` is turned on
 
 ## 0.5.4
 - CI is breaking from 0.5.4, only version of Emacs that tests execute
