@@ -60,9 +60,51 @@ If true, run gradlew from its location in the project file system.
 If false, will find project build file and run `gradle-executable-path' from there."
   :group 'gradle
   :type 'boolean)
+
+(defcustom gradle-use-task-completion t
+  "Fetch the list of known tasks names and use completion on gradle command.
+Note that commands that uses `gradle-execute' may be slowed on the first time."
+  :group 'gradle
+  :type 'boolean)
+
+(defcustom gradle-tasks-file ".gradle.tasks"
+  "Name of files that stores list of known tasks."
+  :group 'gradle
+  :type 'string)
+
+;;; --------------------------
+;; gradle-mode private variables
+;;; --------------------------
+
+(defvar gradle-execute-history nil)
+
+(defvar gradle-tasks-buffer-name "*gradle-tasks*"
+  "Buffer name for internal uses to get list of gradle tasks.")
+
+(defvar gradle-build-script-name "build.gradle"
+  "gradle build configuration file name")
+
 ;;; --------------------------
 ;; gradle-mode private functions
 ;;; --------------------------
+(defun gradle-directory (&optional buffer)
+  "Return the directory where \"build.gradle\" file located"
+  (with-current-buffer (or buffer (current-buffer))
+    (gradle-run-from-dir (if gradle-use-gradlew
+                             'gradle-is-gradlew-dir
+                           'gradle-is-project-dir))))
+
+(defun gradle-tasks-filename ()
+  "Return the full pathname of `gradle-tasks-file'."
+  (ignore-errors
+    (concat (file-name-as-directory (gradle-directory))
+            gradle-tasks-file)))
+
+(defun gradle-filename ()
+  "Return the full pathname of `gradle-build-script-name'."
+  (ignore-errors
+    (concat (file-name-as-directory (gradle-directory))
+            gradle-build-script-name)))
 
 (defun gradle-is-project-dir (dir)
   "Is this DIR a gradle project directory with an extra convention.
@@ -71,10 +113,10 @@ A project dir is also considered if there is a '{dirname}.gradle'.  This
 is a convention for multi-build projects, where dirname is under some
 'rootDir/dirname/dirname.gradle'."
   (let ((dirname (file-name-nondirectory
-		  (directory-file-name (expand-file-name dir)))))
+                  (directory-file-name (expand-file-name dir)))))
     (or (file-exists-p (expand-file-name "build.gradle" dir))
-	(file-exists-p (expand-file-name
-			(concat dirname ".gradle") dir)))))
+        (file-exists-p (expand-file-name
+                        (concat dirname ".gradle") dir)))))
 
 (defun gradle-is-gradlew-dir (dir)
   "Does this DIR contain a gradlew executable file."
@@ -89,25 +131,72 @@ If there is a folder you care to run from higher than this level, you need to mo
   "Kill compilation buffer if present."
   (progn
     (if (get-buffer "*compilation*")
-	(progn
-	  (delete-windows-on (get-buffer "*compilation*"))
-	  (kill-buffer "*compilation*")))))
+        (progn
+          (delete-windows-on (get-buffer "*compilation*"))
+          (kill-buffer "*compilation*")))))
 
 (defun gradle-run (gradle-tasks)
   "Run gradle command with `GRADLE-TASKS' and options supplied."
   (gradle-kill-compilation-buffer)
   (let ((default-directory
-	  (gradle-run-from-dir (if gradle-use-gradlew
-				   'gradle-is-gradlew-dir
-				 'gradle-is-project-dir))))
+          (gradle-run-from-dir (if gradle-use-gradlew
+                                   'gradle-is-gradlew-dir
+                                 'gradle-is-project-dir))))
     (compile (gradle-make-command gradle-tasks))))
 
 (defun gradle-make-command (gradle-tasks)
   "Make the gradle command, using some executable path and GRADLE-TASKS."
   (let ((gradle-executable (if gradle-use-gradlew
-			       gradle-gradlew-executable
-			     gradle-executable-path)))
+                               gradle-gradlew-executable
+                             gradle-executable-path)))
     (s-join " " (list gradle-executable gradle-tasks))))
+
+
+(defun gradle-write-tasks (tasks)
+  "Write TASKS into the file for caching."
+  (with-temp-file (gradle-tasks-filename)
+    (insert (format "# List of gradle tasks, generated at %s\n\n"
+                    (current-time-string)))
+    (dolist (task-name tasks)
+      (insert (format "%s\n" task-name)))))
+
+(defun gradle-read-tasks-from-command (&optional nostore)
+  "Return the list of known gradle tasks from the commandline.
+If NOSTORE is non-nil, no caching is done through `gradle-write-tasks'."
+  (let ((dir (gradle-directory))
+        (cached (gradle-tasks-filename))
+        (buffer (get-buffer-create gradle-tasks-buffer-name))
+        tasks)
+    (with-current-buffer buffer
+      (setq default-directory dir)
+      (erase-buffer)
+      (call-process gradle-executable-path nil buffer nil "tasks")
+      (goto-char (point-min))
+      (while (re-search-forward "^\\([a-zA-Z0-9]+\\) - " nil 'noerror)
+        (setq tasks (cons (match-string-no-properties 1) tasks))))
+    (unless nostore
+      (gradle-write-tasks tasks))
+    tasks))
+
+(defun gradle-read-tasks ()
+  "Return the list of known gradle tasks.
+
+This function will refer the cached file, `gradle-tasks-file', if
+it exists and it is newer than the gradle build script,
+\"build.gradle\"."
+  (let ((cached (gradle-tasks-filename))
+        tasks)
+    (cond ((not gradle-use-task-completion) nil)
+          ((and (file-readable-p cached)
+                (file-newer-than-file-p cached (gradle-filename)))
+           (with-temp-buffer
+             (insert-file-contents-literally cached)
+             (goto-char (point-min))
+             (while (re-search-forward "^\\([a-zA-Z0-9]+\\)$" nil 'noerror)
+               (setq tasks (cons (match-string-no-properties 1) tasks)))
+             tasks))
+          (t (message "Reading list of known gradle tasks...")
+             (gradle-read-tasks-from-command)))))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
@@ -115,7 +204,18 @@ If there is a folder you care to run from higher than this level, you need to mo
 
 (defun gradle-execute (tasks)
   "Execute gradle command with TASKS supplied by user input."
-  (interactive "sType tasks to run: ")
+  (interactive (list (completing-read
+                      (format "Type tasks to run: %s"
+                              (if (and (boundp 'gradle-execute-history)
+                                       (car gradle-execute-history))
+                                  (concat "[" (car gradle-execute-history) "] ")
+                                ""))
+                      (gradle-read-tasks)
+                      nil nil
+                      nil ; initial input
+                      'gradle-execute-history ; hist
+                      gradle-execute-history
+                      )))
   (gradle-run tasks))
 
 (defun gradle-build ()
