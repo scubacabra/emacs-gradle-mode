@@ -54,12 +54,23 @@ Absolute path, usually found with `executable-find'."
   :group 'gradle
   :type 'string)
 
+(defcustom gradle-quiet-option "-q"
+  "String representation of the quite option"
+  :group 'gradle
+  :type 'string)
+
 (defcustom gradle-use-gradlew nil
   "Use gradlew or `gradle-executable-path'.
 If true, run gradlew from its location in the project file system.
 If false, will find project build file and run `gradle-executable-path' from there."
   :group 'gradle
   :type 'boolean)
+
+(defcustom gradle-quiet-activation nil
+  "Silent main part except error and warnings provided by gradle"
+  :group 'gradle
+  :type 'boolean)
+
 ;;; --------------------------
 ;; gradle-mode private functions
 ;;; --------------------------
@@ -105,9 +116,11 @@ If there is a folder you care to run from higher than this level, you need to mo
 (defun gradle-make-command (gradle-tasks)
   "Make the gradle command, using some executable path and GRADLE-TASKS."
   (let ((gradle-executable (if gradle-use-gradlew
-			       gradle-gradlew-executable
-			     gradle-executable-path)))
-    (s-join " " (list gradle-executable gradle-tasks))))
+                               gradle-gradlew-executable
+                             gradle-executable-path)))
+    (if gradle-quiet-activation
+        (s-join " " (list gradle-executable gradle-quiet-option gradle-tasks))
+      (s-join " " (list gradle-executable gradle-tasks)))))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
