@@ -54,8 +54,13 @@ Absolute path, usually found with `executable-find'."
   :group 'gradle
   :type 'string)
 
+(defcustom gradle-continuous-option "--continuous"
+  "String representation of the continuous option"
+  :group 'gradle
+  :type 'string)
+
 (defcustom gradle-quiet-option "-q"
-  "String representation of the quite option"
+  "String representation of the quiet option"
   :group 'gradle
   :type 'string)
 
@@ -71,6 +76,11 @@ If false, will find project build file and run `gradle-executable-path' from the
   :group 'gradle
   :type 'boolean)
 
+(defcustom gradle-continuous-activation nil
+  "Continuous building"
+  :group 'gradle
+  :type 'boolean)
+
 ;;; --------------------------
 ;; gradle-mode private functions
 ;;; --------------------------
@@ -82,10 +92,10 @@ A project dir is also considered if there is a '{dirname}.gradle'.  This
 is a convention for multi-build projects, where dirname is under some
 'rootDir/dirname/dirname.gradle'."
   (let ((dirname (file-name-nondirectory
-		  (directory-file-name (expand-file-name dir)))))
+                  (directory-file-name (expand-file-name dir)))))
     (or (file-exists-p (expand-file-name "build.gradle" dir))
-	(file-exists-p (expand-file-name
-			(concat dirname ".gradle") dir)))))
+        (file-exists-p (expand-file-name
+                        (concat dirname ".gradle") dir)))))
 
 (defun gradle-is-gradlew-dir (dir)
   "Does this DIR contain a gradlew executable file."
@@ -108,19 +118,24 @@ If there is a folder you care to run from higher than this level, you need to mo
   "Run gradle command with `GRADLE-TASKS' and options supplied."
   (gradle-kill-compilation-buffer)
   (let ((default-directory
-	  (gradle-run-from-dir (if gradle-use-gradlew
-				   'gradle-is-gradlew-dir
-				 'gradle-is-project-dir))))
+          (gradle-run-from-dir (if gradle-use-gradlew
+                                   'gradle-is-gradlew-dir
+                                 'gradle-is-project-dir))))
     (compile (gradle-make-command gradle-tasks))))
 
 (defun gradle-make-command (gradle-tasks)
   "Make the gradle command, using some executable path and GRADLE-TASKS."
   (let ((gradle-executable (if gradle-use-gradlew
                                gradle-gradlew-executable
-                             gradle-executable-path)))
-    (if gradle-quiet-activation
-        (s-join " " (list gradle-executable gradle-quiet-option gradle-tasks))
-      (s-join " " (list gradle-executable gradle-tasks)))))
+                             gradle-executable-path))
+        (gradle-cmd '(gradle-executable)))
+    (progn
+      (when gradle-quiet-activation
+        (add-to-list 'gradle-cmd gradle-quiet-option))
+      (when gradle-continuous-activation
+        (add-to-list 'gradle-cmd gradle-continuous-option))
+      (add-to-list 'gradle-cmd gradle-tasks)
+      (s-join " " gradle-cmd))))
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
