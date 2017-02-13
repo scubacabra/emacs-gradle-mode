@@ -104,9 +104,9 @@ If there is a folder you care to run from higher than this level, you need to mo
 
 (defun gradle-make-command (gradle-tasks)
   "Make the gradle command, using some executable path and GRADLE-TASKS."
-  (let ((gradle-executable (if gradle-use-gradlew
+  (let ((gradle-executable (shell-quote-argument (if gradle-use-gradlew
 			       gradle-gradlew-executable
-			     gradle-executable-path)))
+			     gradle-executable-path))))
     (s-join " " (list gradle-executable gradle-tasks))))
 
 ;;; --------------------------
