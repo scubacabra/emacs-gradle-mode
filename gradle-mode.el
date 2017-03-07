@@ -136,6 +136,12 @@ If there is a folder you care to run from higher than this level, you need to mo
   (interactive)
   (gradle-run "build"))
 
+(defun gradle-clean ()
+  "Execute gradle build command."
+  (interactive)
+  (gradle-run "clean"))
+
+
 (defun gradle-test ()
   "Execute gradle test command."
   (interactive)
