@@ -137,14 +137,58 @@ If there is a folder you care to run from higher than this level, you need to mo
       (add-to-list 'gradle-cmd gradle-tasks)
       (s-join " " gradle-cmd))))
 
+
+(defun gradle-list-tasks ()
+  "List the available tasks for the current project"
+  (let ((default-directory  (gradle-run-from-dir (if gradle-use-gradlew
+						     'gradle-is-gradlew-dir
+						   'gradle-is-project-dir)))
+	(root-file (concat "~/.gradle/completion/"
+			   (replace-regexp-in-string "[^[:alnum:]]" "_" (expand-file-name (concat default-directory "/build.gradle")))
+			   ".md5"))
+	md5-filename list-tasks hash-tasks)
+    (if (file-exists-p root-file)
+	(progn
+	  (setq md5-filename (concat "~/.gradle/completion/"
+				     (with-temp-buffer
+				       (insert-file-contents root-file)
+				       (replace-regexp-in-string "\n$" "" (buffer-string)))))
+	  (if (file-exists-p md5-filename)
+	      (progn
+		(setq hash-tasks (make-hash-table))
+		(setq list-tasks (with-temp-buffer
+				   (insert-file-contents md5-filename)
+				   (split-string (buffer-string) "\n" t)))
+		(cl-loop for task in list-tasks
+			 collect  (let ((cur-task (split-string
+						   (replace-regexp-in-string "[\\][:]" ":"
+									     (replace-regexp-in-string "\\([^:]\\):\\([^:]*\\)$" "\\1\t\\2" task))
+						   "\t" t)))
+				    (puthash (car cur-task) (cdr cur-task) hash-tasks)))
+		hash-tasks)
+	    (error (format-message "%s doesn't exist, something went wrong" md5-filename))))
+      (display-warning 'gradle-mode (format-message "%s doesn't exist, run init in your shell" root-file))))
+  )
+
 ;;; --------------------------
 ;; gradle-mode interactive functions
 ;;; --------------------------
 
-(defun gradle-execute (tasks)
+(defun gradle-execute ()
   "Execute gradle command with TASKS supplied by user input."
-  (interactive "sType tasks to run: ")
-  (gradle-run tasks))
+  (interactive)
+  (let ((prompt "Select a task to execute: ")
+	(choices (gradle-list-tasks))
+	task)
+    (when (fboundp 'ivy-read)
+      (progn
+	(setq task
+	      (ivy-read
+	       prompt choices
+	       :history 'gradle-tasks-history
+	       ;; :initial-input initial-input
+	       :caller 'gradle-execute)))
+      (gradle-run task))))
 
 (defun gradle-build ()
   "Execute gradle build command."
