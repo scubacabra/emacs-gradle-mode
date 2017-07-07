@@ -138,6 +138,21 @@ If there is a folder you care to run from higher than this level, you need to mo
       (s-join " " gradle-cmd))))
 
 
+
+(defvar gradle-ivy-hash-tasks nil)
+
+(defun gradle-ivy-transformer (cmd)
+  "Return CMD appended with the corresponding binding in the current window."
+  (let ((desc (gethash cmd gradle-ivy-hash-tasks)))
+    (if desc
+      (format "%s (%s)"
+              cmd (propertize (car desc) 'face 'font-lock-keyword-face))
+      (format "%s" cmd))))
+
+(ivy-set-display-transformer
+ 'gradle-execute
+ 'gradle-ivy-transformer)
+
 (defun gradle-list-tasks ()
   "List the available tasks for the current project"
   (let ((default-directory  (gradle-run-from-dir (if gradle-use-gradlew
@@ -146,7 +161,7 @@ If there is a folder you care to run from higher than this level, you need to mo
 	(root-file (concat "~/.gradle/completion/"
 			   (replace-regexp-in-string "[^[:alnum:]]" "_" (expand-file-name (concat default-directory "/build.gradle")))
 			   ".md5"))
-	md5-filename list-tasks hash-tasks)
+	md5-filename list-tasks)
     (if (file-exists-p root-file)
 	(progn
 	  (setq md5-filename (concat "~/.gradle/completion/"
@@ -155,7 +170,7 @@ If there is a folder you care to run from higher than this level, you need to mo
 				       (replace-regexp-in-string "\n$" "" (buffer-string)))))
 	  (if (file-exists-p md5-filename)
 	      (progn
-		(setq hash-tasks (make-hash-table))
+		(setq gradle-ivy-hash-tasks (make-hash-table))
 		(setq list-tasks (with-temp-buffer
 				   (insert-file-contents md5-filename)
 				   (split-string (buffer-string) "\n" t)))
@@ -164,8 +179,8 @@ If there is a folder you care to run from higher than this level, you need to mo
 						   (replace-regexp-in-string "[\\][:]" ":"
 									     (replace-regexp-in-string "\\([^:]\\):\\([^:]*\\)$" "\\1\t\\2" task))
 						   "\t" t)))
-				    (puthash (car cur-task) (cdr cur-task) hash-tasks)))
-		hash-tasks)
+				    (puthash (car cur-task) (cdr cur-task) gradle-ivy-hash-tasks)))
+		gradle-ivy-hash-tasks)
 	    (error (format-message "%s doesn't exist, something went wrong" md5-filename))))
       (display-warning 'gradle-mode (format-message "%s doesn't exist, run init in your shell" root-file))))
   )
