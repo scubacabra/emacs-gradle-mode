@@ -91,6 +91,12 @@
   (interactive)
   (gradle-run "build"))
 
+(defun gradle-clean ()
+  "Execute gradle build command."
+  (interactive)
+  (gradle-run "clean"))
+
+
 (defun gradle-test ()
   "Execute gradle test command."
   (interactive)
@@ -131,6 +137,7 @@
 (defvar gradle-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-g b") 'gradle-build)
+    (define-key map (kbd "C-c C-g c") 'gradle-clean)
     (define-key map (kbd "C-c C-g t") 'gradle-test)
     (define-key map (kbd "C-c C-g s") 'gradle-single-test)
     (define-key map (kbd "C-c C-g C-d b") 'gradle-build--daemon)
