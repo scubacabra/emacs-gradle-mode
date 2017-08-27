@@ -37,91 +37,65 @@
 
 (require 's)
 (require 'compile)
+(require 'gradle-completion)
+(require 'gradle-core)
 
 ;;; --------------------------
 ;; gradle-mode variables
 ;;; --------------------------
 
-;; error processing if no executable??
-(defcustom gradle-executable-path (executable-find "gradle")
-  "String representation of the Gradle executable location.
-Absolute path, usually found with `executable-find'."
+(defcustom gradle-continuous-option "--continuous"
+  "String representation of the continuous option"
   :group 'gradle
   :type 'string)
 
-(defcustom gradle-gradlew-executable "gradlew"
-  "String representation of the gradlew executable."
+(defcustom gradle-quiet-option "-q"
+  "String representation of the quiet option"
   :group 'gradle
   :type 'string)
 
-(defcustom gradle-use-gradlew nil
-  "Use gradlew or `gradle-executable-path'.
-If true, run gradlew from its location in the project file system.
-If false, will find project build file and run `gradle-executable-path' from there."
+
+(defcustom gradle-quiet-activation nil
+  "Silent main part except error and warnings provided by gradle"
   :group 'gradle
   :type 'boolean)
-;;; --------------------------
-;; gradle-mode private functions
-;;; --------------------------
 
-(defun gradle-is-project-dir (dir)
-  "Is this DIR a gradle project directory with an extra convention.
-A project dir is always considered if there is a 'build.gradle' there.
-A project dir is also considered if there is a '{dirname}.gradle'.  This
-is a convention for multi-build projects, where dirname is under some
-'rootDir/dirname/dirname.gradle'."
-  (let ((dirname (file-name-nondirectory
-		  (directory-file-name (expand-file-name dir)))))
-    (or (file-exists-p (expand-file-name "build.gradle" dir))
-	(file-exists-p (expand-file-name
-			(concat dirname ".gradle") dir)))))
-
-(defun gradle-is-gradlew-dir (dir)
-  "Does this DIR contain a gradlew executable file."
-  (file-exists-p (expand-file-name "gradlew" dir)))
-
-(defun gradle-run-from-dir (is-dir)
-  "Find the closest dir to execute the gradle command under via IS-DIR function.
-If there is a folder you care to run from higher than this level, you need to move out to that level (eg. through dired etc.)."
-  (locate-dominating-file default-directory is-dir))
-
-(defun gradle-kill-compilation-buffer ()
-  "Kill compilation buffer if present."
-  (progn
-    (if (get-buffer "*compilation*")
-	(progn
-	  (delete-windows-on (get-buffer "*compilation*"))
-	  (kill-buffer "*compilation*")))))
-
-(defun gradle-run (gradle-tasks)
-  "Run gradle command with `GRADLE-TASKS' and options supplied."
-  (gradle-kill-compilation-buffer)
-  (let ((default-directory
-	  (gradle-run-from-dir (if gradle-use-gradlew
-				   'gradle-is-gradlew-dir
-				 'gradle-is-project-dir))))
-    (compile (gradle-make-command gradle-tasks))))
-
-(defun gradle-make-command (gradle-tasks)
-  "Make the gradle command, using some executable path and GRADLE-TASKS."
-  (let ((gradle-executable (if gradle-use-gradlew
-			       gradle-gradlew-executable
-			     gradle-executable-path)))
-    (s-join " " (list gradle-executable gradle-tasks))))
+(defcustom gradle-continuous-activation nil
+  "Continuous building"
+  :group 'gradle
+  :type 'boolean)
 
 ;;; --------------------------
 ;; gradle-mode interactive functions
 ;;; --------------------------
 
-(defun gradle-execute (tasks)
+(defun gradle-execute ()
   "Execute gradle command with TASKS supplied by user input."
-  (interactive "sType tasks to run: ")
-  (gradle-run tasks))
+  (interactive)
+  (let ((prompt "Select a task to execute: ")
+	(choices (gradle-list-tasks))
+	task)
+    (when (fboundp 'ivy-read)
+      (progn
+	(setq task
+	      (ivy-read
+	       prompt choices
+	       :history 'gradle-tasks-history
+	       ;; :initial-input initial-input
+	       :caller 'gradle-execute)))
+      (gradle-run task))))
+
 
 (defun gradle-build ()
   "Execute gradle build command."
   (interactive)
   (gradle-run "build"))
+
+(defun gradle-clean ()
+  "Execute gradle build command."
+  (interactive)
+  (gradle-run "clean"))
+
 
 (defun gradle-test ()
   "Execute gradle test command."
@@ -163,6 +137,7 @@ If there is a folder you care to run from higher than this level, you need to mo
 (defvar gradle-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-g b") 'gradle-build)
+    (define-key map (kbd "C-c C-g c") 'gradle-clean)
     (define-key map (kbd "C-c C-g t") 'gradle-test)
     (define-key map (kbd "C-c C-g s") 'gradle-single-test)
     (define-key map (kbd "C-c C-g C-d b") 'gradle-build--daemon)
