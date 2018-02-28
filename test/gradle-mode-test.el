@@ -44,15 +44,15 @@
     (should
      (equal
       (gradle-make-command "test -Dtest-single=MyTest --daemon")
-      "gradlew test -Dtest-single=MyTest --daemon"))
+      "./gradlew test -Dtest-single=MyTest --daemon"))
     (should
      (equal
       (gradle-make-command "build --daemon")
-      "gradlew build --daemon"))
+      "./gradlew build --daemon"))
     (should
      (equal
       (gradle-make-command "test")
-      "gradlew test"))))
+      "./gradlew test"))))
 
 ;; find the correct gradle project directory to run commands in
 

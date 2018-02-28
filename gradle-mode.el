@@ -49,7 +49,7 @@ Absolute path, usually found with `executable-find'."
   :group 'gradle
   :type 'string)
 
-(defcustom gradle-gradlew-executable "gradlew"
+(defcustom gradle-gradlew-executable "./gradlew"
   "String representation of the gradlew executable."
   :group 'gradle
   :type 'string)
