@@ -100,7 +100,7 @@ If there is a folder you care to run from higher than this level, you need to mo
 	  (gradle-run-from-dir (if gradle-use-gradlew
 				   'gradle-is-gradlew-dir
 				 'gradle-is-project-dir))))
-    (compile (gradle-make-command gradle-tasks))))
+    (compile (gradle-make-command gradle-tasks) t)))
 
 (defun gradle-make-command (gradle-tasks)
   "Make the gradle command, using some executable path and GRADLE-TASKS."
