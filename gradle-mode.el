@@ -28,6 +28,9 @@
 
 ;; Gradle integration into Emacs, through compile-mode.
 ;; see documentation on https://github.com/jacobono/emacs-gradle-mode
+;;
+;; If you are looking for syntax highlighting of .gradle files, try
+;; groovy-mode instead.
 
 ;;; Code:
 
